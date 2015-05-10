@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+	<head>
+		<style>
+			td { border: 1px solid #000; }
+			table tr:first-child td { font-weight: bold; }
+		</style>
+		
+	</head>
+  <body>
+  <div id="container">
+  </div>
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  var socket = io();
+  var $container = $("#container");
+  
+  function createTable(text) {
+	var tableName = text[0];
+	var rows = text.slice(1);
+	if(!rows.length || ["version", "subscriber"].indexOf(tableName) != -1) { return; }
+	
+	var $table = $("<table/>");
+	rows.forEach(function(row) {
+		var $tr = $("<tr/>");
+		row.trim().split("\t").forEach(function(field) {
+			$tr.append($("<td/>").text(field));
+		});
+		$table.append($tr);
+	});
+	
+	$container.append($("<h1/>").text(tableName))
+					.append($table)
+					.append($("<br/><br/>"));	
+	
+	
+  }
+
+  socket.on('mysql message', function(msg){
+	$container.html('');
+	msg = msg.trim().replace(/@@@/g, "\n");
+	var text = [];
+	
+    msg.split('\n').forEach(function(line) {
+		line = line.trim();
+		if(line) {
+			text.push(line);
+		} else if(text.length){
+			createTable(text);
+			text = [];
+		}
+	});
+	
+	if(text.length) {
+		createTable(text);
+		text = [];
+	}
+  });
+</script>
+  </body>
+</html>

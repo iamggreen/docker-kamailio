@@ -1,0 +1,8 @@
+#run this inside a docker container running the kamailio db.  i.e. "docker exec -it kamailio /bin/bash" then run the following:
+UPLOAD_IP=192.168.1.6
+UPLOAD_PORT=3000
+while :
+do
+mysql -u root --password=root --database=kamailio -B --skip-column-names -e 'SELECT table_name FROM information_schema.tables where table_schema="kamailio"' | xargs -L1 -I % sh -c "echo %@@@;mysql -u root --password=root --database=kamailio -B -e 'SELECT a.*, \"@@@\" AS \"@@@\" FROM % AS a';echo @@@" > /tmp/out.txt;curl -X POST --header "Content-Type: text/plain" http://$UPLOAD_IP:$UPLOAD_PORT -d @/tmp/out.txt
+sleep 10
+done
